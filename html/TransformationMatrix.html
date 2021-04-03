@@ -1,0 +1,270 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>TransformationMatrix</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-04-03"><meta name="DC.source" content="TransformationMatrix.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">syms <span class="string">a2</span> <span class="string">ac2</span> <span class="string">a3</span> <span class="string">ac3</span> <span class="string">q1</span> <span class="string">q2</span> <span class="string">q3</span> <span class="string">dq1</span> <span class="string">dq2</span> <span class="string">dq3</span> <span class="string">m1</span> <span class="string">m2</span> <span class="string">m3</span> <span class="string">g</span>
+
+
+DHTable = [[0 0 90 q1];[a2 0 0 q2];[a3 0 0 q3]];
+
+T1 = [[cos(q1) 0 sin(q1) 0];[sin(q1) 0 -cos(q1) 0];[0 1 0 0];[0 0 0 1]];
+T2 = [[cos(q2) -sin(q2) 0 a2*cos(q2)];[sin(q2) cos(q2) 0 a2*sin(q2)];[0 0 1 0];[0 0 0 1]];
+Tc2 = [[cos(q2) -sin(q2) 0 ac2*cos(q2)];[sin(q2) cos(q2) 0 ac2*sin(q2)];[0 0 1 0];[0 0 0 1]];
+T3 = [[cos(q3) -sin(q3) 0 a3*cos(q3)];[sin(q3) cos(q3) 0 a3*sin(q3)];[0 0 1 0];[0 0 0 1]];
+Tc3 = [[cos(q3) -sin(q3) 0 ac3*cos(q3)];[sin(q3) cos(q3) 0 ac3*sin(q3)];[0 0 1 0];[0 0 0 1]];
+
+
+<span class="comment">% B = T2*T3;</span>
+H1 = T1;
+H2 = T1*T2;
+Hc2 = T1*Tc2;
+H3 = T1*T2*T3;
+Hc3 = T1*T2*Tc3;
+
+<span class="comment">% disp(B);</span>
+disp(<span class="string">"Transformations"</span>);
+disp(H1);
+disp(H2);
+disp(H3);
+
+zero = [0;0;0];
+
+o0 = zero;
+o1 = H1(1:3,4);
+o2 = H2(1:3,4);
+oc2 = Hc2(1:3,4);
+o3 = H3(1:3,4);
+oc3 = Hc3(1:3,4);
+
+z0 = [0;0;1];
+z1 = H1(1:3,3);
+z2 = H2(1:3,3);
+
+disp(<span class="string">"origins"</span>);
+disp(o0);
+disp(o1);
+disp(o2);
+disp(o3);
+disp(<span class="string">"zs"</span>);
+disp(z0);
+disp(z1);
+disp(z2);
+
+
+J1 = [[cross(z0,(o1-o0)),zero,zero];[z0,zero,zero]];
+J2 = [[cross(z0,(oc2-o0)),cross(z1,(oc2-o1)),zero];[z0,z1,zero]];
+J3 = [[cross(z0,(oc3-o0)),cross(z1,(oc3-o1)),cross(z2,(oc3-o2))];[z0,z1,z2]];
+
+disp(<span class="string">"Jacobian for the first link com"</span>);
+disp(simplify(J1));
+disp(<span class="string">"Jacobian for the second link com"</span>)
+disp(simplify(J2));
+disp(<span class="string">"Jacobian for the third link com"</span>)
+disp(simplify(J3));
+
+I1 = diag([0,0,0]);
+I2 = diag([1/12*m2*a2^2,1/12*m2*a2^2,0]);
+I3 = diag([1/12*m3*a3^2,1/12*m3*a3^2,0]);
+
+Jv1 = J1(1:3,1:3);
+Jw1 = J1(4:6,1:3);
+Jv2 = J2(1:3,1:3);
+Jw2 = J2(4:6,1:3);
+Jv3 = J3(1:3,1:3);
+Jw3 = J3(4:6,1:3);
+R1 = H1(1:3,1:3);
+R2 = H2(1:3,1:3);
+R3 = H3(1:3,1:3);
+
+D1 = m1*transpose(Jv1)*Jv1+transpose(Jw1)*R1*I1*transpose(R1)*Jw1;
+D2 = m2*transpose(Jv2)*Jv2+transpose(Jw2)*R2*I2*transpose(R2)*Jw2;
+D3 = m3*transpose(Jv3)*Jv3+transpose(Jw3)*R3*I3*transpose(R3)*Jw3;
+D = simplify(D1+D2+D3);
+disp(<span class="string">"The D matrix"</span>);
+disp(D);
+
+C = sym(zeros(3));
+
+dq = [dq1;dq2;dq3];
+q = [q1,q2,q3];
+
+<span class="keyword">for</span> i = 1:3
+    <span class="keyword">for</span> j = 1:3
+        <span class="keyword">for</span> k = 1:3
+            C(j,k) = C(j,k)+(diff(D(k,j),q(i))+diff(D(k,i),q(j))-diff(D(i,j),q(k)))*dq(i)/2;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+C = simplify(C);
+disp(<span class="string">"The C matrix"</span>);
+disp(C);
+
+<span class="comment">% g = 9.8;</span>
+
+P = m1*g*o1(2)+m2*g*oc2(2)+m3*g*oc3(2);
+phi1 = simplify(diff(P,q(1)));
+phi2 = simplify(diff(P,q(2)));
+phi3 = simplify(diff(P,q(3)));
+phi = [phi1;phi2;phi3];
+disp(<span class="string">"Potential"</span>);
+disp(P);
+disp(<span class="string">"The phi vector"</span>);
+disp(phi);
+</pre><pre class="codeoutput">Transformations
+[cos(q1), 0,  sin(q1), 0]
+[sin(q1), 0, -cos(q1), 0]
+[      0, 1,        0, 0]
+[      0, 0,        0, 1]
+ 
+[cos(q1)*cos(q2), -cos(q1)*sin(q2),  sin(q1), a2*cos(q1)*cos(q2)]
+[cos(q2)*sin(q1), -sin(q1)*sin(q2), -cos(q1), a2*cos(q2)*sin(q1)]
+[        sin(q2),          cos(q2),        0,         a2*sin(q2)]
+[              0,                0,        0,                  1]
+ 
+[cos(q1)*cos(q2)*cos(q3) - cos(q1)*sin(q2)*sin(q3), - cos(q1)*cos(q2)*sin(q3) - cos(q1)*cos(q3)*sin(q2),  sin(q1), a2*cos(q1)*cos(q2) + a3*cos(q1)*cos(q2)*cos(q3) - a3*cos(q1)*sin(q2)*sin(q3)]
+[cos(q2)*cos(q3)*sin(q1) - sin(q1)*sin(q2)*sin(q3), - cos(q2)*sin(q1)*sin(q3) - cos(q3)*sin(q1)*sin(q2), -cos(q1), a2*cos(q2)*sin(q1) + a3*cos(q2)*cos(q3)*sin(q1) - a3*sin(q1)*sin(q2)*sin(q3)]
+[                cos(q2)*sin(q3) + cos(q3)*sin(q2),                   cos(q2)*cos(q3) - sin(q2)*sin(q3),        0,                         a2*sin(q2) + a3*cos(q2)*sin(q3) + a3*cos(q3)*sin(q2)]
+[                                                0,                                                   0,        0,                                                                            1]
+ 
+origins
+     0
+     0
+     0
+
+0
+0
+0
+ 
+a2*cos(q1)*cos(q2)
+a2*cos(q2)*sin(q1)
+        a2*sin(q2)
+ 
+a2*cos(q1)*cos(q2) + a3*cos(q1)*cos(q2)*cos(q3) - a3*cos(q1)*sin(q2)*sin(q3)
+a2*cos(q2)*sin(q1) + a3*cos(q2)*cos(q3)*sin(q1) - a3*sin(q1)*sin(q2)*sin(q3)
+                        a2*sin(q2) + a3*cos(q2)*sin(q3) + a3*cos(q3)*sin(q2)
+ 
+zs
+     0
+     0
+     1
+
+ sin(q1)
+-cos(q1)
+       0
+ 
+ sin(q1)
+-cos(q1)
+       0
+ 
+Jacobian for the first link com
+[0, 0, 0]
+[0, 0, 0]
+[0, 0, 0]
+[0, 0, 0]
+[0, 0, 0]
+[1, 0, 0]
+ 
+Jacobian for the second link com
+[-ac2*cos(q2)*sin(q1), -ac2*cos(q1)*sin(q2), 0]
+[ ac2*cos(q1)*cos(q2), -ac2*sin(q1)*sin(q2), 0]
+[                   0,          ac2*cos(q2), 0]
+[                   0,              sin(q1), 0]
+[                   0,             -cos(q1), 0]
+[                   1,                    0, 0]
+ 
+Jacobian for the third link com
+[-sin(q1)*(ac3*cos(q2 + q3) + a2*cos(q2)), -cos(q1)*(ac3*sin(q2 + q3) + a2*sin(q2)), -ac3*sin(q2 + q3)*cos(q1)]
+[ cos(q1)*(ac3*cos(q2 + q3) + a2*cos(q2)), -sin(q1)*(ac3*sin(q2 + q3) + a2*sin(q2)), -ac3*sin(q2 + q3)*sin(q1)]
+[                                       0,            ac3*cos(q2 + q3) + a2*cos(q2),          ac3*cos(q2 + q3)]
+[                                       0,                                  sin(q1),                   sin(q1)]
+[                                       0,                                 -cos(q1),                  -cos(q1)]
+[                                       1,                                        0,                         0]
+ 
+The D matrix
+[(a2^2*m2)/12 + (a2^2*m3)/2 + (a3^2*m3)/12 + (ac2^2*m2)/2 + (ac3^2*m3)/2 + (a2^2*m3*cos(2*q2))/2 + (ac2^2*m2*cos(2*q2))/2 + (ac3^2*m3*cos(2*q2 + 2*q3))/2 + a2*ac3*m3*cos(q3) + a2*ac3*m3*cos(2*q2 + q3),                                                   0,                         0]
+[                                                                                                                                                                                                      0, m3*a2^2 + 2*m3*cos(q3)*a2*ac3 + m2*ac2^2 + m3*ac3^2, ac3*m3*(ac3 + a2*cos(q3))]
+[                                                                                                                                                                                                      0,                           ac3*m3*(ac3 + a2*cos(q3)),                  ac3^2*m3]
+ 
+The C matrix
+[- (dq2*(m3*sin(2*q2)*a2^2 + 2*m3*sin(2*q2 + q3)*a2*ac3 + m2*sin(2*q2)*ac2^2 + m3*sin(2*q2 + 2*q3)*ac3^2))/2 - (ac3*dq3*m3*(ac3*sin(2*q2 + 2*q3) + a2*sin(q3) + a2*sin(2*q2 + q3)))/2, (dq1*(m3*sin(2*q2)*a2^2 + 2*m3*sin(2*q2 + q3)*a2*ac3 + m2*sin(2*q2)*ac2^2 + m3*sin(2*q2 + 2*q3)*ac3^2))/2, (ac3*dq1*m3*(ac3*sin(2*q2 + 2*q3) + a2*sin(q3) + a2*sin(2*q2 + q3)))/2]
+[                                                                          -(dq1*(m3*sin(2*q2)*a2^2 + 2*m3*sin(2*q2 + q3)*a2*ac3 + m2*sin(2*q2)*ac2^2 + m3*sin(2*q2 + 2*q3)*ac3^2))/2,                                                                                    -a2*ac3*dq3*m3*sin(q3),                                                  a2*ac3*dq2*m3*sin(q3)]
+[                                                                                                             -(ac3*dq1*m3*(ac3*sin(2*q2 + 2*q3) + a2*sin(q3) + a2*sin(2*q2 + q3)))/2,                                                                            -a2*ac3*m3*sin(q3)*(dq2 + dq3),                                                                      0]
+ 
+Potential
+g*m3*(a2*cos(q2)*sin(q1) + ac3*cos(q2)*cos(q3)*sin(q1) - ac3*sin(q1)*sin(q2)*sin(q3)) + ac2*g*m2*cos(q2)*sin(q1)
+ 
+The phi vector
+ g*cos(q1)*(a2*m3*cos(q2) + ac2*m2*cos(q2) + ac3*m3*cos(q2 + q3))
+-g*sin(q1)*(a2*m3*sin(q2) + ac2*m2*sin(q2) + ac3*m3*sin(q2 + q3))
+                                   -ac3*g*m3*sin(q2 + q3)*sin(q1)
+ 
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+syms a2 ac2 a3 ac3 q1 q2 q3 dq1 dq2 dq3 m1 m2 m3 gDHTable = [[0 0 90 q1];[a2 0 0 q2];[a3 0 0 q3]];T1 = [[cos(q1) 0 sin(q1) 0];[sin(q1) 0 -cos(q1) 0];[0 1 0 0];[0 0 0 1]];T2 = [[cos(q2) -sin(q2) 0 a2*cos(q2)];[sin(q2) cos(q2) 0 a2*sin(q2)];[0 0 1 0];[0 0 0 1]];Tc2 = [[cos(q2) -sin(q2) 0 ac2*cos(q2)];[sin(q2) cos(q2) 0 ac2*sin(q2)];[0 0 1 0];[0 0 0 1]];T3 = [[cos(q3) -sin(q3) 0 a3*cos(q3)];[sin(q3) cos(q3) 0 a3*sin(q3)];[0 0 1 0];[0 0 0 1]];Tc3 = [[cos(q3) -sin(q3) 0 ac3*cos(q3)];[sin(q3) cos(q3) 0 ac3*sin(q3)];[0 0 1 0];[0 0 0 1]];% B = T2*T3;H1 = T1;H2 = T1*T2;Hc2 = T1*Tc2;H3 = T1*T2*T3;Hc3 = T1*T2*Tc3;% disp(B);disp("Transformations");disp(H1);disp(H2);disp(H3);zero = [0;0;0];o0 = zero;o1 = H1(1:3,4);o2 = H2(1:3,4);oc2 = Hc2(1:3,4);o3 = H3(1:3,4);oc3 = Hc3(1:3,4);z0 = [0;0;1];z1 = H1(1:3,3);z2 = H2(1:3,3);disp("origins");disp(o0);disp(o1);disp(o2);disp(o3);disp("zs");disp(z0);disp(z1);disp(z2);J1 = [[cross(z0,(o1-o0)),zero,zero];[z0,zero,zero]];J2 = [[cross(z0,(oc2-o0)),cross(z1,(oc2-o1)),zero];[z0,z1,zero]];J3 = [[cross(z0,(oc3-o0)),cross(z1,(oc3-o1)),cross(z2,(oc3-o2))];[z0,z1,z2]];disp("Jacobian for the first link com");disp(simplify(J1));disp("Jacobian for the second link com")disp(simplify(J2));disp("Jacobian for the third link com")disp(simplify(J3));I1 = diag([0,0,0]);I2 = diag([1/12*m2*a2^2,1/12*m2*a2^2,0]);I3 = diag([1/12*m3*a3^2,1/12*m3*a3^2,0]);Jv1 = J1(1:3,1:3);Jw1 = J1(4:6,1:3);Jv2 = J2(1:3,1:3);Jw2 = J2(4:6,1:3);Jv3 = J3(1:3,1:3);Jw3 = J3(4:6,1:3);R1 = H1(1:3,1:3);R2 = H2(1:3,1:3);R3 = H3(1:3,1:3);D1 = m1*transpose(Jv1)*Jv1+transpose(Jw1)*R1*I1*transpose(R1)*Jw1;D2 = m2*transpose(Jv2)*Jv2+transpose(Jw2)*R2*I2*transpose(R2)*Jw2;D3 = m3*transpose(Jv3)*Jv3+transpose(Jw3)*R3*I3*transpose(R3)*Jw3;D = simplify(D1+D2+D3);disp("The D matrix");disp(D);C = sym(zeros(3));dq = [dq1;dq2;dq3];q = [q1,q2,q3];for i = 1:3    for j = 1:3        for k = 1:3            C(j,k) = C(j,k)+(diff(D(k,j),q(i))+diff(D(k,i),q(j))-diff(D(i,j),q(k)))*dq(i)/2;        end    endendC = simplify(C);disp("The C matrix");disp(C);% g = 9.8;P = m1*g*o1(2)+m2*g*oc2(2)+m3*g*oc3(2);phi1 = simplify(diff(P,q(1)));phi2 = simplify(diff(P,q(2)));phi3 = simplify(diff(P,q(3)));phi = [phi1;phi2;phi3];disp("Potential");disp(P);disp("The phi vector");disp(phi);
+##### SOURCE END #####
+--></body></html>

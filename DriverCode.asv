@@ -35,15 +35,13 @@ end
 
 % getting "fake" velocity and acceleration
 dq = zeros(3,n);
-% dq(:,1) = (q(:,2)-q(:,1))/(T(2)-T(1));
-% dq(:,n) = (q(:,n)-q(:,n-1))/(T(n)-T(n-1));
+dq(:,1) = (q(:,2)-q(:,1))/(T(2)-T(1));
+dq(:,1) = (q(:,2)-q(:,1))/(T(2)-T(1));
 for i = 2:n-1
     dq(:,i) = (q(:,i+1)-q(:,i-1))/(T(i+1)-T(i-1));
 end
 
 ddq = zeros(3,n);
-% dq(:,1) = (q(:,2)-q(:,1))/(T(2)-T(1));
-% dq(:,n) = (q(:,n)-q(:,n-1))/(T(n)-T(n-1));
 for i = 2:n-1
     ddq(:,i) = (dq(:,i+1)-dq(:,i-1))/(T(i+1)-T(i-1));
 end

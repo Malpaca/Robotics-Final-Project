@@ -9,6 +9,8 @@ classdef WindowCleanerArm < handle
 
     properties
         Link      % link lengths; a vector.
+        COM
+        Mass
     end
     properties (Access = private)
         JointAngle    % angles of each joint, a vector
@@ -16,10 +18,12 @@ classdef WindowCleanerArm < handle
 
     methods
         % constructor
-        function this = WindowCleanerArm(link)
+        function this = WindowCleanerArm(link,com,mass)
             % construct a robot
             if nargin > 0
                 this.Link = link;
+                this.COM = com;
+                this.Mass = mass;
             end
         end
 
@@ -44,8 +48,8 @@ classdef WindowCleanerArm < handle
 
             L = this.Link;
             x = L(1)*cos(q(1))*cos(q(2));
-            y = L(1)*sin(q(1))*cos(q(2));
-            z = L(1)*sin(q(2));
+            z = L(1)*sin(q(1))*cos(q(2));
+            y = L(1)*sin(q(2));
             posA = [x;y;z];
         end
         function posB = calcPosB(this,q)
@@ -53,8 +57,8 @@ classdef WindowCleanerArm < handle
 
             L = this.Link;
             x = cos(q(1))*(L(1)*cos(q(2)) + L(2)*cos(q(2)+q(3)));
-            y = sin(q(1))*(L(1)*cos(q(2)) + L(2)*cos(q(2)+q(3)));
-            z = L(1)*sin(q(2)) + L(2)*sin(q(2)+q(3));
+            z = sin(q(1))*(L(1)*cos(q(2)) + L(2)*cos(q(2)+q(3)));
+            y = L(1)*sin(q(2)) + L(2)*sin(q(2)+q(3));
             posB = [x;y;z];
         end
 
@@ -67,9 +71,9 @@ classdef WindowCleanerArm < handle
             L1 = L(1);
             L2 = L(2);
             D = (x^2+y^2+z^2-L1^2-L2^2)/(2*L1*L2);
-            q3=atan2(sqrt(1-D^2),D);
-            q2=atan2(z,sqrt(x^2+y^2))-atan2((L2*sin(q3)),(L1+L2*cos(q3)));
-            q1 = atan2(y,x);
+            q3=atan2(-sqrt(1-D^2),D);
+            q2=atan2(y,sqrt(x^2+z^2))-atan2((L2*sin(q3)),(L1+L2*cos(q3)));
+            q1 = atan2(z,x);
 
             %Returns q1 and q2
             q = [q1;q2;q3]; %
@@ -78,6 +82,53 @@ classdef WindowCleanerArm < handle
                 disp("can not reach or is not in the workspace")
                 return
             end
+        end
+        
+        function tau = Torque(this,q,dq,ddq)
+            % joint variable
+            q1 = q(1);
+            q2 = q(2);
+            q3 = q(3);
+            dq1 = dq(1);
+            dq2 = dq(2);
+            dq3 = dq(3);
+            %robot variable
+            a2 = this.Link(1);
+            a3 = this.Link(2);
+            ac2 = this.Link(1)*this.COM(1);
+            ac3 = this.Link(2)*this.COM(2);
+            m2 = this.Mass(1);
+            m3 = this.Mass(2);
+            
+            %D matrix
+            d11 = (a2^2*m2)/12 + (a2^2*m3)/2 + (a3^2*m3)/12 + (ac2^2*m2)/2 + (ac3^2*m3)/2 + (a2^2*m3*cos(2*q2))/2 + (ac2^2*m2*cos(2*q2))/2 + (ac3^2*m3*cos(2*q2 + 2*q3))/2 + a2*ac3*m3*cos(q3) + a2*ac3*m3*cos(2*q2 + q3);
+            d12 = 0;
+            d13 = 0;
+            d22 = m3*a2^2 + 2*m3*cos(q3)*a2*ac3 + m2*ac2^2 + m3*ac3^2;
+            d23 = ac3*m3*(ac3 + a2*cos(q3));
+            d33 = ac3^2*m3;
+            D = [[d11,d12,d13];[d12,d22,d23];[d13,d23,d33]];
+            
+            %C matrix
+            c11 = -(dq2*(m3*sin(2*q2)*a2^2 + 2*m3*sin(2*q2 + q3)*a2*ac3 + m2*sin(2*q2)*ac2^2 + m3*sin(2*q2 + 2*q3)*ac3^2))/2 - (ac3*dq3*m3*(ac3*sin(2*q2 + 2*q3) + a2*sin(q3) + a2*sin(2*q2 + q3)))/2;
+            c12 = (dq1*(m3*sin(2*q2)*a2^2 + 2*m3*sin(2*q2 + q3)*a2*ac3 + m2*sin(2*q2)*ac2^2 + m3*sin(2*q2 + 2*q3)*ac3^2))/2;
+            c13 = (ac3*dq1*m3*(ac3*sin(2*q2 + 2*q3) + a2*sin(q3) + a2*sin(2*q2 + q3)))/2;
+            c21 = -(dq1*(m3*sin(2*q2)*a2^2 + 2*m3*sin(2*q2 + q3)*a2*ac3 + m2*sin(2*q2)*ac2^2 + m3*sin(2*q2 + 2*q3)*ac3^2))/2;
+            c22 = -a2*ac3*dq3*m3*sin(q3);
+            c23 = a2*ac3*dq2*m3*sin(q3);
+            c31 = -(ac3*dq1*m3*(ac3*sin(2*q2 + 2*q3) + a2*sin(q3) + a2*sin(2*q2 + q3)))/2;
+            c32 = -a2*ac3*m3*sin(q3)*(dq2 + dq3);
+            c33 = 0;
+            C = [[c11,c12,c13];[c21,c22,c23];[c31,c32,c33]];
+            
+            %Phi vector
+            g = 9.8;
+            phi1 = g*cos(q1)*(a2*m3*cos(q2) + ac2*m2*cos(q2) + ac3*m3*cos(q2 + q3));
+            phi2 = -g*sin(q1)*(a2*m3*sin(q2) + ac2*m2*sin(q2) + ac3*m3*sin(q2 + q3));
+            phi3 = -ac3*g*m3*sin(q2 + q3)*sin(q1);
+            phi = [phi1;phi2;phi3];
+            
+            tau = D*ddq+C*dq+phi;
         end
 
         function q = polytraj(this,qi, qf,t,n)
@@ -110,25 +161,34 @@ classdef WindowCleanerArm < handle
             q    = this.getJointAngle;
             posA = this.calcPosA(q);
             posB = this.calcPosB(q);
-%             disp("q:");
-%             disp(q);
-%             disp("joint 2");
-%             disp(posA);
-%             disp("joint 3");
-%             disp(posB);
+            
+            r1 = [[1.5;0; 1.25],[0.5;0; 1.25]].';
+            r2 = [[0.5;0; 1.25],[0.5;0;-0.25]].';
+            r3 = [[0.5;0;-0.25],[1.5;0;-0.25]].';
+            r4 = [[1.5;0;-0.25],[1.5;0; 1.25]].';
+            
             L1   = [O posA].';
             L2   = [posA posB].';
+            L3   = [posB+[0;0;0.25],posB-[0;0;0.25]].';
             hold on
+            
+            line(r1(:,1),r1(:,2),r1(:,3),'linewidth',2,'color','black');
+            line(r2(:,1),r2(:,2),r2(:,3),'linewidth',2,'color','black');
+            line(r3(:,1),r3(:,2),r3(:,3),'linewidth',2,'color','black');
+            line(r4(:,1),r4(:,2),r4(:,3),'linewidth',2,'color','black');
+            
             line(L1(:,1),L1(:,2),L1(:,3),'linewidth',2,'color','b');
             line(L2(:,1),L2(:,2),L2(:,3),'linewidth',2,'color','b');
+            line(L3(:,1),L3(:,2),L3(:,3),'linewidth',2,'color','red');
             plot3(O(1),O(2),O(3),'k.','markersize',25);
-            plot3(posA(1),posA(2),posA(3),'k.','markersize',25);
-            plot3(posB(1),posB(2),posB(3),'k.','markersize',25);
+            plot3(posA(1),posA(2),posA(3),'k.','markersize',15);
+            plot3(posB(1),posB(2),posB(3),'k.','markersize',15);
             hold off
         end
         function animateMotion(this,dt)
             % this animates the motion of the robot
-            axis([-2 2 -2 2 -2 2]);
+            axis([-0.5 2 0 2 -0.5 2]);
+            set(gca,'Ydir','reverse')
             view(3);
             grid on;
             xlabel('x');
