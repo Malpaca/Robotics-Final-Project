@@ -68,11 +68,11 @@ classdef WindowCleanerArm < handle
             % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             L = this.Link;
-            L1 = L(1);
-            L2 = L(2);
-            D = (x^2+y^2+z^2-L1^2-L2^2)/(2*L1*L2);
+            a2 = L(1);
+            a3 = L(2);
+            D = (x^2+y^2+z^2-a2^2-a3^2)/(2*a2*a3);
             q3=atan2(-sqrt(1-D^2),D);
-            q2=atan2(y,sqrt(x^2+z^2))-atan2((L2*sin(q3)),(L1+L2*cos(q3)));
+            q2=atan2(y,sqrt(x^2+z^2))-atan2((a3*sin(q3)),(a2+a3*cos(q3)));
             q1 = atan2(z,x);
 
             %Returns q1 and q2
@@ -155,22 +155,29 @@ classdef WindowCleanerArm < handle
                 q(:,i) = this.InverseKinematics(set(1,i), set(2,i), set(3,i));
             end
         end
-        function plotRobot(this)
+        function plotRobot(this,top,bot,left,right)
             % this plots the geometry of robot
             O    = [0;0;0];
             q    = this.getJointAngle;
             posA = this.calcPosA(q);
             posB = this.calcPosB(q);
             
-            r1 = [[1.5;0; 1.25],[0.5;0; 1.25]].';
-            r2 = [[0.5;0; 1.25],[0.5;0;-0.25]].';
-            r3 = [[0.5;0;-0.25],[1.5;0;-0.25]].';
-            r4 = [[1.5;0;-0.25],[1.5;0; 1.25]].';
+            top = top+0.25;
+            bot = bot-0.25;
+            
+            r1 = [[right; 0; top],[left ; 0; top]].';
+            r2 = [[right; 0; bot],[left ; 0; bot]].';
+            r3 = [[right; 0; top],[right; 0; bot]].';
+            r4 = [[left ; 0; top],[left ; 0; bot]].';
             
             L1   = [O posA].';
             L2   = [posA posB].';
             L3   = [posB+[0;0;0.25],posB-[0;0;0.25]].';
+            
+            sill = [O [right;0;0]].';
             hold on
+            
+            line(sill(:,1),sill(:,2),sill(:,3),'linewidth',4,'color','black')
             
             line(r1(:,1),r1(:,2),r1(:,3),'linewidth',2,'color','black');
             line(r2(:,1),r2(:,2),r2(:,3),'linewidth',2,'color','black');
@@ -185,16 +192,16 @@ classdef WindowCleanerArm < handle
             plot3(posB(1),posB(2),posB(3),'k.','markersize',15);
             hold off
         end
-        function animateMotion(this,dt)
+        function animateMotion(this,dt,top,bot,left,right)
             % this animates the motion of the robot
             axis([-0.5 2 0 2 -0.5 2]);
             set(gca,'Ydir','reverse')
             view(3);
             grid on;
             xlabel('x');
-            ylabel('y');
-            zlabel('z');
-            this.plotRobot;
+            ylabel('z');
+            zlabel('y');
+            this.plotRobot(top,bot,left,right);
             drawnow
             pause(dt) % pause with a 'correct' timing
             clf

@@ -14,18 +14,24 @@ mass = [0.5;0.5];
 % Build your robot 
 robot = WindowCleanerArm(link,com,mass);
 t = 3;% time to move
-n = 200; %number of segment 
+n = 350; %number of segment 
 T = linspace(0,t,n); %time array
 
-di = [1.5;0;1];
-df = [0.5;0;0];
+% Define the working area, right now it is just a rectangle 
+% (4 variable representing the 4 boundary of rectangle).
+% The furthest point in the rectangle to the origin should not be more than 2
+% Avoid x=y=0 which is singularity
+top = 1.5;
+bot = 0.5;
+left = 0;
+right = 1;
 
 % predetermined washer path
-guide = [[1.5;0;1],[0.5;0;1],[0.5;0;0.5],[1.5;0;0.5],[1.5;0;0],[0.5;0;0]];
-time = [50,25,50,25,50];
-ptime = [0,50,75,125,150];
+guide = [[left;0;top],[right;0;top],[left;0;top],[left;0;(top+bot)/2],[right;0;(top+bot)/2],[left;0;(top+bot)/2],[left;0;bot],[right;0;bot],[left;0;bot]];
+time = [50,50,25,50,50,25,50,50];
+ptime = [0,50,100,125,175,225,250,300];
 q = zeros(3,n);
-for i = 1:5
+for i = 1:length(guide)-1
     coefficient = linspace(0,1,time(i));
     set = guide(:,i) + coefficient.*(guide(:,i+1) - guide(:,i));
     for j = 1:time(i)
@@ -66,5 +72,5 @@ for i = 1:length(T)-1
     if i < length(T)
         dt = T(i+1)-T(i);
     end
-    robot.animateMotion(dt)
+    robot.animateMotion(dt,top,bot,left,right)
 end
